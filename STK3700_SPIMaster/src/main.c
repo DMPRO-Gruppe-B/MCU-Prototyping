@@ -37,12 +37,12 @@ void send_byte(byte b) {
 }
 
 void send_setting(setting_t *setting) {
-	byte bytes[3] = { setting->id, (setting->value & 0xFF00) >> 8,
-			setting->value & 0xFF };
-	for (int i = 0; i < 3; i++) {
-		byte b = bytes[i];
-		send_byte(b);
-	}
+	GPIO_PinOutClear(gpioPortD, 4); // Chip select
+	Delay(2);
+	send_byte(setting->id);
+	send_byte((byte) (setting->value & 0xFF00) >> 8);
+	send_byte((byte) setting->value & 0xFF);
+	GPIO_PinOutSet(gpioPortD, 4);
 }
 
 void GPIO_Init() {
@@ -52,6 +52,7 @@ void GPIO_Init() {
 		GPIO_PinModeSet(gpioPortD, i, gpioModePushPull, 0);
 		GPIO_PinOutClear(gpioPortD, i);
 	}
+	GPIO_PinOutSet(gpioPortD, 4); // Chip select
 }
 
 int main(void) {
