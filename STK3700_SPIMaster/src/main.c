@@ -1,37 +1,5 @@
-#include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
-#include <stdbool.h>
-//#include "em_device.h"
-#include "em_chip.h"
-#include "em_cmu.h"
-//#include "em_emu.h"
-//#include "bsp.h"
-//#include "bsp_trace.h"
-
+#include "main.h"
 #include "systime.h"
-
-#define BIT(x) (1U << (x))
-
-typedef unsigned char byte;
-
-typedef struct {
-	uint8_t id;
-	char *name;
-	char *unit;
-	uint16_t value;
-	uint16_t step_size;
-	uint16_t min;
-	uint16_t max;
-} setting_t;
-
-typedef struct {
-	char *name;
-	uint8_t n_settings;
-	setting_t **settings;
-} effect_t;
-
-effect_t effects[2];
 
 void send_byte(byte b) {
 	for (int j = 0; j < 8; j++) {
@@ -56,32 +24,6 @@ void send_setting(setting_t *setting) {
 	GPIO_PinOutSet(gpioPortD, 4);
 }
 
-setting_t *create_setting(uint8_t id, char *name, char *unit, uint16_t value, uint16_t step_size, uint16_t min, uint16_t max) {
-	setting_t *setting = malloc(sizeof(setting_t));
-
-	setting->name = malloc(strlen(name) + 1);
-	setting->unit = malloc(strlen(unit) + 1);
-	setting->id = id;
-	setting->value = value;
-	setting->step_size = step_size;
-	setting->min = min;
-	setting->max = max;
-
-	strcpy(setting->name, name);
-	strcpy(setting->unit, unit);
-
-	return setting;
-}
-
-effect_t create_effect(char *name, uint8_t n_settings) {
-	effect_t e;
-	e.n_settings = n_settings;
-	e.name = malloc(strlen(name) + 1);
-	strcpy(e.name, name);
-	e.settings = malloc(n_settings * sizeof(setting_t *));
-	return e;
-}
-
 void GPIO_Init() {
 	CMU_ClockEnable(cmuClock_GPIO, true);
 
@@ -90,21 +32,6 @@ void GPIO_Init() {
 		GPIO_PinOutClear(gpioPortD, i);
 	}
 	GPIO_PinOutSet(gpioPortD, 4); // Chip select
-}
-
-void setup_effects() {
-	// Bitcrusher
-	effect_t bitcrusher = create_effect("Bitcrusher", 3);
-	bitcrusher.settings[0] = create_setting(0b00000000, "Enable", "", 0, 1, 0, 1);
-	bitcrusher.settings[1] = create_setting(0b00000001, "Bits", "bits", 0, 1, 0, 8);
-	bitcrusher.settings[2] = create_setting(0b00000010, "Sample interval", "", 1, 1, 1, 16);
-
-	effect_t delay = create_effect("Delay", 2);
-	delay.settings[0] = create_setting(0b00000100, "Enable", "", 0, 1, 0, 1);
-	delay.settings[1] = create_setting(0b00000101, "Delay", "ms", 0, 50, 0, 500);
-
-	effects[0] = bitcrusher;
-	effects[1] = delay;
 }
 
 int main(void) {
@@ -119,6 +46,8 @@ int main(void) {
 	}
 
 	GPIO_Init();
+	setup_effects();
+
 	Delay(20);
 
 	/*
@@ -158,5 +87,4 @@ int main(void) {
 	setting_t test1 = { .id = 1, .name = "oof", .unit = "ms", .value = 10 };
 	send_setting(&test1);
 
-	setup_effects();
 }
