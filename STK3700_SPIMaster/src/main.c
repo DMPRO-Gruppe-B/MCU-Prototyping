@@ -21,17 +21,22 @@ void send_setting(setting_t *setting) {
 	send_byte(setting->id);
 	send_byte((byte) (setting->value & 0xFF00) >> 8);
 	send_byte((byte) setting->value & 0xFF);
+	Delay(8);
 	GPIO_PinOutSet(gpioPortD, 4);
+	GPIO_PinOutClear(gpioPortD, 5);
+	Delay(2);
 }
 
 void GPIO_Init() {
 	CMU_ClockEnable(cmuClock_GPIO, true);
 
-	for (int i = 0; i <= 6; i++) {
-		GPIO_PinModeSet(gpioPortD, i, gpioModePushPull, 0);
-		GPIO_PinOutClear(gpioPortD, i);
-	}
+	GPIO_PinModeSet(gpioPortD, 4, gpioModePushPull, 0);
 	GPIO_PinOutSet(gpioPortD, 4); // Chip select
+
+	GPIO_PinModeSet(gpioPortD, 5, gpioModePushPull, 0);
+	GPIO_PinOutClear(gpioPortD, 5);
+	GPIO_PinModeSet(gpioPortD, 6, gpioModePushPull, 0);
+	GPIO_PinOutClear(gpioPortD, 6);
 }
 
 int main(void) {
@@ -84,7 +89,8 @@ int main(void) {
 	 Delay(10);
 	 }
 	 */
-	setting_t test1 = { .id = 1, .name = "oof", .unit = "ms", .value = 10 };
-	send_setting(&test1);
+	setting_t test1 = { .id = 0x1, .name = "oof", .unit = "ms", .value = 5 };
+	while(1)
+		send_setting(&test1);
 
 }
